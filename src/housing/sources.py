@@ -75,12 +75,12 @@ def acs_metro_names(year: int, refresh: bool = False) -> pd.DataFrame:
     return geos[["CBSA", "NAME"]].rename(columns={"CBSA": "cbsa", "NAME": "cbsa_name"})
 
 
-def acs_median_income(refresh: bool = False) -> pd.DataFrame:
-    """ACS 1-year median household income (table B19013) for each metro and year."""
+def _acs_metro_estimate(table: str, value_name: str, refresh: bool) -> pd.DataFrame:
+    """First estimate of an ACS 1-year table, and its 90% margin of error, for each metro and year."""
     frames = []
     for year in range(ACS_FIRST_YEAR, date.today().year + 1):
-        url = f"{ACS_BASE.format(year=year)}/data/1YRData/acsdt1y{year}-b19013.dat"
-        path = download(url, f"acs_b19013_{year}.dat", refresh)
+        url = f"{ACS_BASE.format(year=year)}/data/1YRData/acsdt1y{year}-{table.lower()}.dat"
+        path = download(url, f"acs_{table.lower()}_{year}.dat", refresh)
         if path is None:
             continue
         df = pd.read_csv(path, sep="|", dtype={"GEO_ID": str})
@@ -88,6 +88,17 @@ def acs_median_income(refresh: bool = False) -> pd.DataFrame:
         frames.append(pd.DataFrame({
             "cbsa": df["GEO_ID"].str[-5:],
             "year": year,
-            "median_income": pd.to_numeric(df["B19013_E001"], errors="coerce"),
+            value_name: pd.to_numeric(df[f"{table.upper()}_E001"], errors="coerce"),
+            f"{value_name}_moe": pd.to_numeric(df[f"{table.upper()}_M001"], errors="coerce"),
         }))
-    return pd.concat(frames, ignore_index=True).dropna()
+    return pd.concat(frames, ignore_index=True).dropna(subset=[value_name])
+
+
+def acs_median_income(refresh: bool = False) -> pd.DataFrame:
+    """ACS 1-year median household income (table B19013) for each metro and year."""
+    return _acs_metro_estimate("B19013", "median_income", refresh)
+
+
+def acs_population(refresh: bool = False) -> pd.DataFrame:
+    """ACS 1-year total population (table B01003) for each metro and year."""
+    return _acs_metro_estimate("B01003", "population", refresh)

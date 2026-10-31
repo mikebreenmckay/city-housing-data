@@ -1,0 +1,11 @@
+venv/
+.venv/
+__pycache__/
+*.egg-info/
+.ipynb_checkpoints/
+.idea/
+.vscode/
+
+# Raw downloads are large and re-creatable with scripts/build_data.py.
+# Processed CSVs in data/processed/ are committed.
+data/raw/

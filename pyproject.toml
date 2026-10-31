@@ -15,6 +15,7 @@ dependencies = [
 
 [project.optional-dependencies]
 notebooks = ["jupyter", "ipykernel"]
+dashboard = ["streamlit>=1.46", "plotly>=5.20"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

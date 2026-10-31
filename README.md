@@ -40,6 +40,24 @@ See [notebooks/02_durham_and_peers.ipynb](notebooks/02_durham_and_peers.ipynb). 
 metro, rebuild with `python scripts/build_data.py --focus "Boise City, ID" --peers 10`
 (use Zillow's metro name).
 
+## Dashboard
+
+An interactive Streamlit dashboard sits on the same processed data:
+
+```bash
+streamlit run app/dashboard.py
+```
+
+Pick any metro as the focus and compare it with its 10 closest metros by population, the 50 largest,
+or all of them. Tabs cover:
+
+- **Ranking**: every metro in the comparison set, ranked on one affordability measure
+- **Income vs costs**: the focus metro's income, home value, rent and mortgage payment indexed to 2021,
+  with the income margin of error shaded, plus how far home prices outran incomes in each metro
+- **Price & rent trends**: monthly Zillow series for up to 8 metros, in dollars or indexed
+- **Relationships**: income level vs home value, and income growth vs home value growth
+- **Data**: the table behind it all, with a CSV download
+
 ## Data sources
 
 All are public downloads with no API key required.
@@ -68,15 +86,14 @@ metros (e.g. Cleveland 17460 → 17410).
 ## Project layout
 
 ```
-src/housing/        reusable package (sources, metro matching, metrics, pipeline)
+src/housing/        reusable package (sources, metro matching, metrics, pipeline, Plotly charts)
+app/                Streamlit dashboard
 scripts/            build_data.py: download sources and rebuild data/processed/
 data/processed/     tidy CSVs: metro_monthly, metro_annual, metro_latest (committed)
 data/raw/           cached downloads (git-ignored)
 notebooks/          analysis notebooks
 ```
 
-The `housing` package returns plain DataFrames, so a dashboard (e.g. Streamlit) can sit on
-top of `housing.load_processed()` without changing the pipeline.
 
 ## Setup
 
@@ -85,12 +102,13 @@ python -m venv venv
 venv\Scripts\activate          # macOS/Linux: source venv/bin/activate
 pip install -r requirements.txt
 python scripts/build_data.py   # add --refresh to re-download, --top N for more metros
-jupyter notebook notebooks/
+jupyter notebook notebooks/      # or: streamlit run app/dashboard.py
 ```
 
 ## Ideas for next steps
 
 - Backfill income before 2021 (Census API, needs a free key) for a pre-pandemic baseline
 - Add property tax and insurance to the monthly cost
-- Interactive dashboard: pick metros, compare trends, map affordability
+- A map view of affordability in the dashboard
+- Deploy the dashboard (e.g. Streamlit Community Cloud) so it can be shared by link
 - Supply side: Census building permits vs population growth
